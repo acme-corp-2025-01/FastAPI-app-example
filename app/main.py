@@ -4,7 +4,7 @@ import yaml
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 
-with open('logging.yaml', 'rt') as f:
+with open("logging.yaml", "rt") as f:
     logging_config = yaml.safe_load(f.read())
 
 logging.config.dictConfig(logging_config)
