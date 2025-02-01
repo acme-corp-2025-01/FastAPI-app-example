@@ -1,0 +1,19 @@
+[project]
+name = "FastAPI-app-example"
+description = "A simple FastAPI application that returns 'Hello, World!' at the root endpoint (/)."
+license = { text = "MIT" }
+dynamic = [ "version" ]
+requires-python = ">=3.13"
+readme = "README.md"
+authors = [
+    { name = "Ilia Makarov", email = "iAuster@yandex.com" },
+]
+maintainers = [
+    { name = "Ilia Makarov", email = "iAuster@yandex.com" },
+]
+
+[build-system]
+requires = ["setuptools"]
+
+[tool.setuptools.dynamic]
+version = {attr = "app.__version__"}

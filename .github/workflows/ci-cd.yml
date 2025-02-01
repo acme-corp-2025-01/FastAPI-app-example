@@ -1,8 +1,26 @@
-name: flake8 Lint
+name: CI/CD
 
 on: [push, pull_request]
 
 jobs:
+  set-variables:
+    runs-on: ubuntu-latest
+    name: Set Variables
+    outputs:
+      REPOSITORYNAME: ${{ steps.set-repo-name.outputs.REPOSITORYNAME }}
+      DOCKERIMAGENAME: ${{ steps.set-version.outputs.DOCKERIMAGENAME }}
+    steps:
+      - name: Set version
+        id: set-version
+        run: |
+          export DOCKER_IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+          echo "DOCKERIMAGENAME=${DOCKER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+      - name: Set repository name
+        id: set-repo-name
+        run: |
+          export REPOSITORY_NAME_RAW="${{ github.repository }}"
+          export REPOSITORY_NAME=$(echo $REPOSITORY_NAME_RAW | tr '[:upper:]' '[:lower:]')
+          echo "REPOSITORYNAME=${REPOSITORY_NAME}" >> $GITHUB_OUTPUT
   flake8-lint:
     runs-on: ubuntu-latest
     name: Lint
@@ -14,6 +32,68 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.13"
       - name: flake8 Lint
         uses: py-actions/flake8@v2
+  build-docker-image:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [flake8-lint, set-variables]
+    permissions:
+      packages: write
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
+      - name: List files in the repository
+        run: ls -la
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        run: |
+          docker build -t ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }} .
+          docker push ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
+      - name: Set 'latest' tag if push is to main branch
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }} ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:latest
+          docker push ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:latest
+  test-api:
+    name: Test API
+    runs-on: ubuntu-latest
+    needs: [build-docker-image, set-variables]
+    services:
+      backend:
+        image: ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        ports:
+          - 8000:8000
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Wait backend to start
+        run: |
+          sleep 10
+      - name: Install Node
+        uses: actions/setup-node@v4
+      - name: "[newman] Install"
+        run: |
+          npm install -g newman
+      - name: "[newman] Run tests"
+        run: |
+          newman run --env-var "base_url=localhost:8000" tests/api/newman/collection.json
