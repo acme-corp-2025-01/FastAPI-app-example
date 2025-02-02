@@ -20,9 +20,9 @@ docker-compose up
 ```bash
 docker-compose ps
 ```
-5. Open a web browser and navigate to `http://app-example-backend.localhost/` to view the Swagger documentation for the API.
-6. Access OpenAPI documentation at `http://app-example-backend.localhost/docs`
-7. You can also access Traefik dashboard at `http://localhost:8080/`
+5. Open a web browser and navigate to [http://app-example-backend.localhost/](http://app-example-backend.localhost/)
+6. Access OpenAPI documentation at [http://app-example-backend.localhost/docs](http://app-example-backend.localhost/docs)
+7. You can also access Traefik dashboard at [http://localhost:8080/](http://localhost:8080/)
 
 ### Alternative execution
 You can also run the FastAPI application without Traefik by running the following command:
@@ -32,7 +32,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 fastaapi run main:app
 ```
-The application will be available at `http://localhost:8000/`
+The application will be available at [http://localhost:8000/](http://localhost:8000/)
 
 ## CI/CD
 The repository includes a GitHub Actions workflow that runs the tests and builds the Docker image on every push to the main branch.
