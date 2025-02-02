@@ -80,8 +80,8 @@ jobs:
       - name: Push to ECR if push is to main branch
         if: github.ref == 'refs/heads/main'
         run: |
-          docker tag ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }} ${{ AWS_ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
-          docker push ${{ AWS_ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
+          docker tag ghcr.io/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ needs.set-variables.outputs.REPOSITORYNAME }}:${{ needs.set-variables.outputs.DOCKERIMAGENAME }}
   test-api:
     name: Test API
     runs-on: ubuntu-latest
