@@ -34,6 +34,19 @@ fastaapi run main:app
 ```
 The application will be available at [http://localhost:8000/](http://localhost:8000/)
 
+## API Testing
+The repository includes a simple test suite that tests the API endpoints. The tests are written using the postman/newman tool.
+To run the tests, execute the following command:
+```bash
+docker-compose run newman run tests/api/newman/collection.json
+```
+Or you can run the tests using Postman desktop application by importing the collection file located at `tests/api/postman/collection.json`.
+There are two test cases in the collection:
+- Test the `/` endpoint: verify that the response status code is 200 and the response body is exactly `"Hello, World!"`
+- Test the `/health` endpoint: verify that the response status code is 200 and JSON response body contains the key `status` with the value `ok`
+
+Using Postman/newman you can also use OpenAPI documentation to generate the collection file.
+
 ## CI/CD
 The repository includes a GitHub Actions workflow that runs the tests and builds the Docker image on every push to the main branch.
 The CI/CD pipeline can be found in `.github/workflows/ci-cd.yml`.
